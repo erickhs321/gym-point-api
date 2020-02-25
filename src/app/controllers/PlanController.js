@@ -10,8 +10,12 @@ class PlanController {
 
   async store(req, res) {
     const schema = Yup.object().shape({
-      title: Yup.string().required(),
-      duration: Yup.number().required(),
+      title: Yup.string()
+        .min(4)
+        .required(),
+      duration: Yup.number()
+        .min(1)
+        .required(),
       price: Yup.number().required(),
     });
 
@@ -35,6 +39,42 @@ class PlanController {
       duration,
       price,
     });
+  }
+
+  async update(req, res) {
+    const schema = Yup.object().shape({
+      title: Yup.string().min(4),
+      duration: Yup.number().min(1),
+      price: Yup.number(),
+    });
+
+    if (!(await schema.isValid(req.body))) {
+      return res.status(400).json({ error: 'Validation fails' });
+    }
+
+    const { id } = req.params;
+
+    const plan = await Plan.findByPk(id);
+
+    if (!plan) {
+      return res.status(400).json({ error: 'Plan does not exists' });
+    }
+
+    const updatedPlan = await plan.update(req.body);
+
+    return res.json(updatedPlan);
+  }
+
+  async delete(req, res) {
+    const { id } = req.params;
+
+    const plan = await Plan.findByPk(id);
+
+    if (!plan) {
+      return res.status(400).json({ error: 'Plan does not exists' });
+    }
+
+    return res.json(await plan.destroy());
   }
 }
 
