@@ -1,5 +1,6 @@
 import * as Yup from 'yup';
-import { addMonths, parseISO } from 'date-fns';
+import pt from 'date-fns/locale/pt';
+import { addMonths, parseISO, format } from 'date-fns';
 import Enrollment from '../models/Enrollment';
 import Student from '../models/Student';
 import Plan from '../models/Plan';
@@ -40,7 +41,17 @@ class EnrollmentController {
     await Mail.sendMail({
       to: `${student.name} <${student.email}`,
       subject: 'Matrícula realizada',
-      text: 'Sua matrícula foi agendada',
+      template: 'enrollment-completed',
+      context: {
+        student: student.name,
+        plan: plan.title,
+        planDuration:
+          plan.duration > 1 ? `${plan.duration} meses` : `${plan.duration} mês`,
+        endDate: format(end_date, "'dia' dd 'de' MMMM, 'às' HH:mm'h'", {
+          locale: pt,
+        }),
+        price: `R$ ${plan.price}`,
+      },
     });
 
     return res.json({
